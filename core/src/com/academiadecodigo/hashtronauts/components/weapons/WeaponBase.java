@@ -23,7 +23,7 @@ public abstract class WeaponBase implements Weapon {
     private final String sideWeaponImg;
 
     //Weapon properties
-    private final Array<Bullet> bullets;
+    private volatile Array<Bullet> bullets;
     private final float missRate;
     private int clips;
 
@@ -69,9 +69,7 @@ public abstract class WeaponBase implements Weapon {
 
         usedBullet.dispose();
 
-        //target.hit(usedBullet.getDamage());
-
-        return false;
+        return target.hit(usedBullet.getDamage());
     }
 
     @Override
@@ -119,7 +117,7 @@ public abstract class WeaponBase implements Weapon {
             throw new NotEnoughAmmo();
         }
 
-        createBullets();
+        this.bullets = createBullets();
         clips--;
     }
 }
