@@ -18,9 +18,10 @@ public abstract class WeaponBase implements Weapon {
     private final Sound missSound;
     private Texture sideWeapon;
     private BitmapFont weaponTitle;
+    private BitmapFont clipsLeft;
+    private BitmapFont ammoBar;
 
     private final WeaponType weaponType;
-    private final String sideWeaponImg;
 
     //Weapon properties
     private volatile Array<Bullet> bullets;
@@ -29,14 +30,18 @@ public abstract class WeaponBase implements Weapon {
 
 
     protected WeaponBase(WeaponType weaponType, String sideWeaponImg){
-        this.sideWeaponImg = sideWeaponImg;
-
         this.missRate = weaponType.getMissRate();
         this.weaponType = weaponType;
         this.clips = weaponType.getClips();
         this.bullets = createBullets();
 
         this.missSound = Gdx.audio.newSound(Gdx.files.internal("sounds/weapons/weaponMiss.mp3"));
+
+        weaponTitle = Fonts.getCustomFont("fonts/college.ttf", 20);
+        clipsLeft = Fonts.getCustomFont("fonts/college.ttf", 50);
+        ammoBar = Fonts.getCustomFont("fonts/college.ttf", 100);
+
+        sideWeapon = new Texture(sideWeaponImg);
     }
 
     private Array<Bullet> createBullets() {
@@ -81,6 +86,7 @@ public abstract class WeaponBase implements Weapon {
         missSound.dispose();
         weaponTitle.dispose();
         sideWeapon.dispose();
+        clipsLeft.dispose();
 
         for (Bullet bullet : bullets) {
             bullet.dispose();
@@ -89,17 +95,16 @@ public abstract class WeaponBase implements Weapon {
 
     @Override
     public void renderWeapon(SpriteBatch batch) {
-        if (sideWeapon == null) {
-            sideWeapon = new Texture(sideWeaponImg);
-        }
-
-        if (weaponTitle == null) {
-            weaponTitle = Fonts.getCustomFont("fonts/college.ttf", 20);
-        }
 
         Vector2 titleSize = Utils.getStringSize(weaponTitle, weaponType.getTitle());
+
         weaponTitle.draw(batch, weaponType.getTitle(),
                 Gdx.graphics.getWidth() - (titleSize.x + 60), Gdx.graphics.getHeight() - 10);
+
+        ammoBar.draw(batch, "i", 55,  80);
+
+        clipsLeft.draw(batch, clips + "", 30, 50);
+
         batch.draw(sideWeapon, Gdx.graphics.getWidth() - (150 + 10), Gdx.graphics.getHeight() - (sideWeapon.getHeight() - 40), 150, 80);
 
         drawBullets(batch);

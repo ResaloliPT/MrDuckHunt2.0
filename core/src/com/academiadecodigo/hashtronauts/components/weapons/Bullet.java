@@ -25,7 +25,7 @@ public class Bullet {
             initDraw();
         }
 
-        int startX = 15;
+        int startX = 80;
         int startY = 10;
         bulletRect.set(startX + ((10 + 30) * offset), startY , 30, 100);
         batch.draw(bulletImg, bulletRect.getX(), bulletRect.getY(), bulletRect.width, bulletRect.height);
