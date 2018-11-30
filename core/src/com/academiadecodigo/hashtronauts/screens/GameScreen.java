@@ -3,8 +3,15 @@ package com.academiadecodigo.hashtronauts.screens;
 import com.academiadecodigo.hashtronauts.MrDuckHunt;
 import com.academiadecodigo.hashtronauts.components.Crosshair;
 import com.academiadecodigo.hashtronauts.components.Score;
+import com.academiadecodigo.hashtronauts.components.weapons.Shotgun;
+import com.academiadecodigo.hashtronauts.components.weapons.Weapon;
+import com.academiadecodigo.hashtronauts.components.weapons.WeaponBase;
+import com.academiadecodigo.hashtronauts.components.weapons.WeaponType;
+import com.academiadecodigo.hashtronauts.exceptions.MissedShoot;
+import com.academiadecodigo.hashtronauts.exceptions.NotEnoughAmmo;
 import com.academiadecodigo.hashtronauts.utils.Fonts;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.audio.Music;
@@ -18,16 +25,18 @@ public class GameScreen extends ScreenAdapter {
 
     private final SpriteBatch batch;
     private final OrthographicCamera camera;
-    private MrDuckHunt game;
+
+    //Background
+    private Music bgMusic;
+    private Texture bgImage;
 
     //Game Components
     private Crosshair crosshair;
     private Score score;
-    private Music bgMusic;
-    private Texture bgImage;
+    private Weapon weapon;
+
 
     public GameScreen(MrDuckHunt game) {
-        this.game = game;
         this.batch = game.getBatch();
         this.camera = game.getCamera();
         crosshair = new Crosshair(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
@@ -37,6 +46,8 @@ public class GameScreen extends ScreenAdapter {
         bgMusic = Gdx.audio.newMusic(Gdx.files.internal("sounds/MrDuckSoundTrack.wav"));
         bgMusic.setLooping(true);
         bgMusic.play();
+
+        weapon = new Shotgun();
     }
 
     @Override
@@ -49,9 +60,9 @@ public class GameScreen extends ScreenAdapter {
         camera.update();
         batch.begin();
         //Render Space
-
         batch.draw(bgImage, 0, 0);
 
+        weapon.renderWeapon(batch);
         score.draw(batch);
         crosshair.draw(batch);
 
@@ -59,6 +70,15 @@ public class GameScreen extends ScreenAdapter {
         //Game Logic
         //Move Crosshair
         crosshair.move(camera, new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        
+
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            try {
+                weapon.shoot(null);
+            } catch (MissedShoot ignored) {} catch (NotEnoughAmmo ignored) {}
+        }
+
+
     }
 
     @Override
@@ -68,5 +88,6 @@ public class GameScreen extends ScreenAdapter {
         bgImage.dispose();
         bgMusic.stop();
         bgMusic.dispose();
+        weapon.dispose();
     }
 }
