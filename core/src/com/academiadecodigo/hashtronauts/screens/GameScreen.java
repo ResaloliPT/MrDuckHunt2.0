@@ -2,11 +2,14 @@ package com.academiadecodigo.hashtronauts.screens;
 
 import com.academiadecodigo.hashtronauts.MrDuckHunt;
 import com.academiadecodigo.hashtronauts.components.Crosshair;
+import com.academiadecodigo.hashtronauts.components.GameObjects.targets.Target;
 import com.academiadecodigo.hashtronauts.components.Score;
 import com.academiadecodigo.hashtronauts.components.weapons.Shotgun;
 import com.academiadecodigo.hashtronauts.components.weapons.Weapon;
 import com.academiadecodigo.hashtronauts.exceptions.MissedShoot;
 import com.academiadecodigo.hashtronauts.exceptions.NotEnoughAmmo;
+import com.academiadecodigo.hashtronauts.helpers.EnemyHelper;
+import com.academiadecodigo.hashtronauts.helpers.GameHelpers;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
@@ -16,6 +19,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 public class GameScreen extends ScreenAdapter {
@@ -26,6 +30,9 @@ public class GameScreen extends ScreenAdapter {
     //Background
     private Music bgMusic;
     private Texture bgImage;
+
+    //Game Helpers
+    private EnemyHelper enemyHelper = GameHelpers.getEnemyHelper();
 
     //Game Components
     private Crosshair crosshair;
@@ -47,6 +54,9 @@ public class GameScreen extends ScreenAdapter {
         weapon = new Shotgun();
 
         setupEvents();
+
+        enemyHelper.spawnRandomEnemy().setInitialPos(50, 50);
+
     }
 
     @Override
@@ -65,10 +75,13 @@ public class GameScreen extends ScreenAdapter {
         score.draw(batch);
         crosshair.draw(batch);
 
+        enemyHelper.drawTargets(batch);
+
         batch.end();
         //Game Logic
         //Move Crosshair
         crosshair.move(camera, new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        enemyHelper.moveTargets();
     }
 
     @Override
@@ -79,6 +92,7 @@ public class GameScreen extends ScreenAdapter {
         bgMusic.stop();
         bgMusic.dispose();
         weapon.dispose();
+        enemyHelper.disposeTargets();
     }
 
     public void setupEvents() {
@@ -99,7 +113,7 @@ public class GameScreen extends ScreenAdapter {
                     try {
                         weapon.reload();
                         return true;
-                    } catch (NotEnoughAmmo notEnoughAmmo) {
+                    } catch (NotEnoughAmmo ignored) {
                     }
                 }
 
@@ -109,13 +123,22 @@ public class GameScreen extends ScreenAdapter {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 if (button == Input.Buttons.LEFT) {
+
+                    Target targetHit = enemyHelper.checkMouseClick(new Vector2(screenX, Math.abs(screenY - Gdx.graphics.getHeight())));
+
                     try {
-                        weapon.shoot(null);
+
+                        if (weapon.shoot(targetHit)) {
+                            enemyHelper.destroyTarget(targetHit);
+                        }
+
+
                         return true;
                     } catch (MissedShoot ignored) {
                     } catch (NotEnoughAmmo ignored) {
                     }
                 }
+
 
                 return false;
             }

@@ -60,10 +60,6 @@ public abstract class WeaponBase implements Weapon {
             throw new NotEnoughAmmo();
         }
 
-        if (Math.random() < missRate) {
-            missSound.play();
-            throw new MissedShoot();
-        }
 
         Bullet usedBullet;
         try {
@@ -72,9 +68,16 @@ public abstract class WeaponBase implements Weapon {
             return false;
         }
 
+        if (Math.random() < missRate || target == null) {
+            missSound.play();
+            throw new MissedShoot();
+        }
+
+        boolean dead = target.hit(usedBullet.getDamage());
+
         usedBullet.dispose();
 
-        return target.hit(usedBullet.getDamage());
+        return dead;
     }
 
     @Override
