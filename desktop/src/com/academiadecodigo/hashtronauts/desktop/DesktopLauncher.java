@@ -11,6 +11,6 @@ public class DesktopLauncher {
 		config.height = 600;
 		config.width = 800;
 
-		new LwjglApplication(new MrDuckHunt(), config);
+		new LwjglApplication(MrDuckHunt.getInstance(), config);
 	}
 }

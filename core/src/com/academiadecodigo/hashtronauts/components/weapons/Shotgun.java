@@ -23,7 +23,7 @@ public class Shotgun extends WeaponBase {
 
     @Override
     public boolean shoot(Target target) {
-        boolean killed;
+        boolean killed = false;
 
         try {
             killed = super.shoot(target);
@@ -39,12 +39,17 @@ public class Shotgun extends WeaponBase {
     }
 
     @Override
-    public void reload() {
+    public boolean reload() throws NotEnoughAmmo {
         try {
-            super.reload();
-            reloadSound.play();
+            if (super.reload())
+                reloadSound.play();
+            return true;
         } catch (NotEnoughAmmo notEnoughAmmo) {
             notEnoughAmmoSound.play();
+            if(getClipCount() == 0)
+                throw notEnoughAmmo;
         }
+
+        return false;
     }
 }

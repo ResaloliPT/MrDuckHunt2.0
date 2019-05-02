@@ -2,6 +2,8 @@ package com.academiadecodigo.hashtronauts.screens;
 
 import com.academiadecodigo.hashtronauts.MrDuckHunt;
 import com.academiadecodigo.hashtronauts.components.GameStrings;
+import com.academiadecodigo.hashtronauts.helpers.GameHelpers;
+import com.academiadecodigo.hashtronauts.helpers.ScreenHelper;
 import com.academiadecodigo.hashtronauts.utils.Fonts;
 import com.academiadecodigo.hashtronauts.utils.Utils;
 import com.badlogic.gdx.Gdx;
@@ -31,7 +33,11 @@ public class MainScreen extends ScreenAdapter {
     private Sound startSound;
     private Texture bgImage;
 
-    public MainScreen(MrDuckHunt game) {
+    private ScreenHelper screenHelper = GameHelpers.getScreenHelper();
+
+    private static MainScreen instance;
+
+    private MainScreen(MrDuckHunt game) {
         this.game = game;
         this.batch = game.getBatch();
         this.camera = game.getCamera();
@@ -41,13 +47,27 @@ public class MainScreen extends ScreenAdapter {
         bgImage = new Texture("StartMenuBG.png");
     }
 
+    public static MainScreen getInstance(){
+        if(instance == null)
+            throw new NullPointerException("First init the Main Screen!");
+
+        return  instance;
+    }
+
+    public static void InitScreen(MrDuckHunt game) {
+        instance = new MainScreen(game);
+    }
+
     @Override
     public void show() {
-        Gdx.audio.newSound(Gdx.files.internal("sounds/MRDUCKHUNT.wav")).play();
-
         welcomeTextSize = Utils.getStringSize(welcomeText, GameStrings.WELCOME_TEXT);
         pressToStartSize = Utils.getStringSize(pressToStart, GameStrings.PRESS_TO_START);
         startSound.play();
+    }
+
+    @Override
+    public void hide() {
+        startSound.stop();
     }
 
     @Override
@@ -69,10 +89,8 @@ public class MainScreen extends ScreenAdapter {
 
         // Screen Logic
         if (Gdx.input.isTouched()) {
-            game.setScreen(new GameScreen(game));
-            dispose();
+            game.setScreen(screenHelper.getGameScreen());
         }
-
     }
 
     @Override

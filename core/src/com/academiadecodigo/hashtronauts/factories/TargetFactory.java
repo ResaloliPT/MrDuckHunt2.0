@@ -14,8 +14,6 @@ public class TargetFactory {
 
         switch (targetType) {
             case DUCK:
-                newTarget = new Duck();
-                break;
             default:
                 newTarget = new Duck();
         }

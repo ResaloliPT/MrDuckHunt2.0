@@ -1,5 +1,10 @@
 package com.academiadecodigo.hashtronauts;
 
+import com.academiadecodigo.hashtronauts.components.weapons.Shotgun;
+import com.academiadecodigo.hashtronauts.helpers.GameHelpers;
+import com.academiadecodigo.hashtronauts.helpers.PlayerHelper;
+import com.academiadecodigo.hashtronauts.helpers.ScreenHelper;
+import com.academiadecodigo.hashtronauts.inputProcessors.GameInputProcessor;
 import com.academiadecodigo.hashtronauts.screens.MainScreen;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -11,13 +16,31 @@ public class MrDuckHunt extends Game {
 	private SpriteBatch batch;
 	private OrthographicCamera camera;
 
+	private ScreenHelper screenHelper;
+
+	private PlayerHelper playerHelper;
+
+
+	private static MrDuckHunt instance = new MrDuckHunt();
+
+	private MrDuckHunt(){}
+
 	@Override
 	public void create () {
+		screenHelper = GameHelpers.getScreenHelper();
+		playerHelper = GameHelpers.getPlayerHelper();
+
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-		this.setScreen(new MainScreen(this));
+		MainScreen.InitScreen(this);
+
+		playerHelper.setWeapon(new Shotgun());
+
+		setupEvents(this);
+
+		this.setScreen(MainScreen.getInstance());
 	}
 
 	@Override
@@ -27,7 +50,12 @@ public class MrDuckHunt extends Game {
 		//Calling Screen Render
 		super.render();
 	}
-	
+
+	private void setupEvents(MrDuckHunt game) {
+		Gdx.input.setInputProcessor(new GameInputProcessor());
+	}
+
+
 	@Override
 	public void dispose () {
 		batch.dispose();
@@ -39,5 +67,9 @@ public class MrDuckHunt extends Game {
 
 	public OrthographicCamera getCamera() {
 		return camera;
+	}
+
+	public static MrDuckHunt getInstance() {
+		return instance;
 	}
 }

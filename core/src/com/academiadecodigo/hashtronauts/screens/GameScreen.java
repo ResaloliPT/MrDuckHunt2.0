@@ -1,5 +1,6 @@
 package com.academiadecodigo.hashtronauts.screens;
 
+import com.academiadecodigo.hashtronauts.EndGameStates;
 import com.academiadecodigo.hashtronauts.MrDuckHunt;
 import com.academiadecodigo.hashtronauts.components.Crosshair;
 import com.academiadecodigo.hashtronauts.components.GameObjects.targets.Target;
@@ -10,10 +11,9 @@ import com.academiadecodigo.hashtronauts.exceptions.MissedShoot;
 import com.academiadecodigo.hashtronauts.exceptions.NotEnoughAmmo;
 import com.academiadecodigo.hashtronauts.helpers.EnemyHelper;
 import com.academiadecodigo.hashtronauts.helpers.GameHelpers;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.ScreenAdapter;
+import com.academiadecodigo.hashtronauts.helpers.PlayerHelper;
+import com.academiadecodigo.hashtronauts.inputProcessors.GameInputProcessor;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -29,34 +29,28 @@ public class GameScreen extends ScreenAdapter {
 
     //Background
     private Music bgMusic;
-    private Texture bgImage;
+    private Texture bgImage = new Texture("Landscape.png");
 
     //Game Helpers
     private EnemyHelper enemyHelper = GameHelpers.getEnemyHelper();
 
-    //Game Components
-    private Crosshair crosshair;
-    private Score score;
-    private Weapon weapon;
+    private PlayerHelper playerHelper = GameHelpers.getPlayerHelper();
 
+    private MrDuckHunt game = MrDuckHunt.getInstance();
 
-    public GameScreen(MrDuckHunt game) {
+    private boolean isPaused = false;
+
+    private static GameScreen instance;
+
+    private GameScreen() {
         this.batch = game.getBatch();
         this.camera = game.getCamera();
-        crosshair = new Crosshair(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
-        score = new Score();
 
-        bgImage = new Texture("Landscape.png");
         bgMusic = Gdx.audio.newMusic(Gdx.files.internal("sounds/MrDuckSoundTrack.wav"));
         bgMusic.setLooping(true);
         bgMusic.play();
 
-        weapon = new Shotgun();
-
-        setupEvents();
-
         enemyHelper.spawnRandomEnemy().setInitialPos(50, 50);
-
     }
 
     @Override
@@ -71,97 +65,52 @@ public class GameScreen extends ScreenAdapter {
         //Render Space
         batch.draw(bgImage, 0, 0);
 
-        weapon.renderWeapon(batch);
-        score.draw(batch);
-        crosshair.draw(batch);
+        playerHelper.render(batch, camera);
 
         enemyHelper.drawTargets(batch);
 
         batch.end();
         //Game Logic
-        //Move Crosshair
-        crosshair.move(camera, new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
         enemyHelper.moveTargets();
+
+        if(playerHelper.isWeaponEmpty())
+            endGame(EndGameStates.OUTOFAMMO);
     }
 
     @Override
     public void dispose() {
-        crosshair.dispose();
-        score.dispose();
         bgImage.dispose();
         bgMusic.stop();
         bgMusic.dispose();
-        weapon.dispose();
         enemyHelper.disposeTargets();
+        playerHelper.dispose();
     }
 
-    public void setupEvents() {
-        Gdx.input.setInputProcessor(new InputProcessor() {
-            @Override
-            public boolean keyDown(int keycode) {
-                return false;
-            }
+    public boolean isPaused() {
+        return isPaused;
+    }
 
-            @Override
-            public boolean keyUp(int keycode) {
-                return false;
-            }
+    public void pauseGame(){
+        isPaused = true;
+    }
 
-            @Override
-            public boolean keyTyped(char character) {
-                if (character == 'r') {
-                    try {
-                        weapon.reload();
-                        return true;
-                    } catch (NotEnoughAmmo ignored) {
-                    }
-                }
+    public void unpauseGame(){
+        isPaused = false;
+    }
 
-                return false;
-            }
+    public static GameScreen getInstance() {
+        if(instance == null)
+            instance = new GameScreen();
 
-            @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                if (button == Input.Buttons.LEFT) {
+        return instance;
+    }
 
-                    Target targetHit = enemyHelper.checkMouseClick(new Vector2(screenX, Math.abs(screenY - Gdx.graphics.getHeight())));
+    private void endGame(EndGameStates state) {
+        game.setScreen(new EndScreen(game, state));
+    }
 
-                    try {
-
-                        if (weapon.shoot(targetHit)) {
-                            enemyHelper.destroyTarget(targetHit);
-                        }
-
-
-                        return true;
-                    } catch (MissedShoot ignored) {
-                    } catch (NotEnoughAmmo ignored) {
-                    }
-                }
-
-
-                return false;
-            }
-
-            @Override
-            public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-                return false;
-            }
-
-            @Override
-            public boolean touchDragged(int screenX, int screenY, int pointer) {
-                return false;
-            }
-
-            @Override
-            public boolean mouseMoved(int screenX, int screenY) {
-                return false;
-            }
-
-            @Override
-            public boolean scrolled(int amount) {
-                return false;
-            }
-        });
+    public static void reset(){
+        instance.dispose();
+        instance = new GameScreen();
     }
 }
