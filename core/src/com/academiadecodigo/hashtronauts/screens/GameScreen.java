@@ -53,6 +53,10 @@ public class GameScreen extends ScreenAdapter {
         enemyHelper.spawnRandomEnemy().setInitialPos(50, 50);
     }
 
+    private double currTime = 0.0;
+    private double lastDebounceTime = 0.0;
+    private double debounceDelay = 1.5;
+
     @Override
     public void render(float delta) {
         //OpenGL Stuff
@@ -72,6 +76,12 @@ public class GameScreen extends ScreenAdapter {
         batch.end();
         //Game Logic
         enemyHelper.moveTargets();
+
+        currTime += delta;
+        if ((currTime - lastDebounceTime) > debounceDelay) {
+            enemyHelper.spawnRandomEnemy().setInitialPos(50, (int) Math.round(Math.random() * (((Gdx.graphics.getHeight() -50) - (Gdx.graphics.getHeight() /2)) + (Gdx.graphics.getHeight() /2))));
+            lastDebounceTime = currTime;
+        }
 
         if(playerHelper.isWeaponEmpty())
             endGame(EndGameStates.OUTOFAMMO);
